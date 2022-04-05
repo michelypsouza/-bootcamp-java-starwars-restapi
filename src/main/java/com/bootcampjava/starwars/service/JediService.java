@@ -43,7 +43,7 @@ public class JediService {
         return jediRepositoryImpl.save(jedi);
     }
 
-    public  boolean update(Jedi jedi) {
+    public boolean update(Jedi jedi) {
         boolean updated = false;
 
         Jedi savedJedi = this.save(jedi);

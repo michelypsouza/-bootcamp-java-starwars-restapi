@@ -51,7 +51,7 @@ public class JediControllerTest {
         // execucao
         mockMvc.perform(get("/jedi/{id}",1))
 
-                //asserts
+                // asserts
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
@@ -77,6 +77,31 @@ public class JediControllerTest {
     }
 
     //TODO: Teste do POST com sucesso
+    @Test
+    @DisplayName("POST /jedi - SUCCESS")
+    public void testPostJediWithSucess() throws Exception {
+
+        // cenario
+        Jedi mockJedi = new Jedi(1, "HanSolo", 10, 1);
+        Mockito.doReturn(mockJedi).when(jediService).save(Mockito.any());
+
+        // execucao
+        mockMvc.perform(post("/jedi")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(mockJedi)))
+
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(header().string(HttpHeaders.LOCATION,"/jedi".concat("/"+mockJedi.getId())))
+                .andExpect(header().string(HttpHeaders.ETAG, "\"1\""))
+
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("HanSolo")))
+                .andExpect(jsonPath("$.strength", is(10)))
+                .andExpect(jsonPath("$.version", is(1)));
+
+    }
+
     //TODO: Teste do PUT com sucesso
     //TODO: Teste do PUT com uma versao igual da ja existente - deve retornar conflito
     //TODO: Teste do PUT com erro - not found
