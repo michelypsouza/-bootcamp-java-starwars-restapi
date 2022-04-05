@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 @RestController
 public class JediController {
@@ -41,7 +42,7 @@ public class JediController {
     }
 
     @PostMapping("/jedi")
-    public  ResponseEntity<Jedi> saveJedi(@RequestBody Jedi jedi) {
+    public ResponseEntity<Jedi> saveJedi(@RequestBody Jedi jedi) {
 
         Jedi newJedi = jediService.save(jedi);
 
@@ -53,6 +54,20 @@ public class JediController {
         } catch (URISyntaxException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+
+    }
+
+    @PutMapping("/jedi")
+    public ResponseEntity<Jedi> updateJedi(@RequestBody Jedi jedi) {
+
+        boolean updatedJedi = jediService.update(jedi);
+        if (!updatedJedi) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(jediService.findById(jedi.getId()).get());
+//        return ResponseEntity.ok().build();
+//        return ResponseEntity.noContent().build();
 
     }
 }
