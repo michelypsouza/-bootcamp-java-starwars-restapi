@@ -15,10 +15,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.List;
 import java.util.Optional;
 
-
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class JediTestService {
+public class JediServiceTest {
 
     @Autowired
     private JediService jediService;
@@ -74,10 +73,8 @@ public class JediTestService {
         List<Jedi> listAllJedi = jediService.findAll();
 
         // assert
-        //Assertions.assertTrue(listAllJedi.size() == 1);
         Assertions.assertTrue(listAllJedi.size() == 1,"Jedi list size equal to one");
         Assertions.assertSame(listAllJedi.get(0), mockJedi, "Jedis must be the same");
     }
-
 
 }
