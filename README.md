@@ -22,6 +22,6 @@
 - [X] Teste do PUT com sucesso
 - [X] Teste do PUT com uma versao igual da ja existente - deve retornar um conflito
 - [X] Teste do PUT com erro - not found
-- [ ] Teste do delete com sucesso
-- [ ] Teste do delete com erro - deletar um id ja deletado
-- [ ] Teste do delete com erro  - internal server error
+- [X] Teste do delete com sucesso
+- [X] Teste do delete com erro - deletar um id ja deletado
+- [X] Teste do delete com erro  - internal server error
