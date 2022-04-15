@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -128,7 +129,7 @@ public class JediControllerTest {
 
     //TODO: Teste do PUT com uma versao igual da ja existente - deve retornar conflito
     @Test
-    @DisplayName("PUT /jedi - Version Mismatch - CONFLICT")
+    @DisplayName("PUT /jedi/1 - Version Mismatch - CONFLICT")
     public void testPutJediVersionMismatch() throws Exception {
 
         // cenario
@@ -151,7 +152,7 @@ public class JediControllerTest {
     //TODO: Teste do PUT com erro - not found
     @Test
     @DisplayName("PUT /jedi/1 - Not Found")
-    void testJediPutNotFound() throws Exception {
+    public void testJediPutNotFound() throws Exception {
 
         // cenario
         Jedi putJedi = new Jedi("Darth Vader", 400);
@@ -168,11 +169,62 @@ public class JediControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-
     //TODO: Teste do delete com sucesso
-    //TODO: Teste do delete com erro - deletar um id ja deletado
-    //TODO: teste do delete com erro - internal server error
+    @Test
+    @DisplayName("DELETE /jedi/1 - SUCCESS")
+    public void testDeleteJediWithSuccess() throws Exception {
 
+        // cenario
+        Integer id = 1;
+        Jedi jediFound = new Jedi(1, "HanSolo", 100, 1);
+
+        // execucao
+        Mockito.doReturn(Optional.of(jediFound)).when(jediService).findById(id);
+        Mockito.doReturn(true).when(jediService).delete(id);
+
+        // assert
+        mockMvc.perform(delete("/jedi/{id}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.LOCATION, "/jedi/"+id)
+                )
+                .andExpect(status().isOk());
+                //.andExpect(status().isNoContent())
+
+    }
+
+    //TODO: Teste do delete com erro - deletar um id ja deletado
+    @Test
+    @DisplayName("DELETE /jedi/1 - Not Found")
+    public void testJediDeleteNotFound() throws Exception {
+
+        // execucao
+        Mockito.doReturn(Optional.empty()).when(jediService).findById(1);
+        Mockito.doReturn(false).when(jediService).delete(any());
+
+        // assert
+        mockMvc.perform(delete("/jedi/{id}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.LOCATION,"/jedi/1"))
+                .andExpect(status().isNotFound());
+    }
+
+    //TODO: teste do delete com erro - internal server error
+    @Test
+    @DisplayName("DELETE /jedi/1 - internal server error")
+    public void testJediDeleteInternalServerError() throws Exception {
+
+        Integer id = 1;
+        Jedi mockJedi = new Jedi(1, "Luke Skywalker", 100, 1);
+
+        Mockito.doReturn(Optional.of(mockJedi)).when(jediService).findById(id);
+        Mockito.doReturn(false).when(jediService).delete(id);
+
+        mockMvc.perform(delete("/jedi/{id}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.LOCATION, "/jedi/1"))
+                .andExpect(status().isInternalServerError());
+
+    }
     static String asJsonString(final Object obj) {
         try {
             return new ObjectMapper().writeValueAsString(obj);
