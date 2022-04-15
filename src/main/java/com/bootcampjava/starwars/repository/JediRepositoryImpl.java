@@ -82,7 +82,7 @@ public class JediRepositoryImpl implements JediRepository {
 
         Number newId = simpleJdbcInsert.execute(parameters);
 
-        logger.info("Inserting Jedi intro database, generated id is: {}", newId);
+        logger.info("Inserting Jedi into database, generated id is: {}", newId);
 
         jedi.setId((Integer) newId);
 

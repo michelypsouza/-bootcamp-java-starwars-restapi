@@ -57,17 +57,37 @@ public class JediController {
 
     }
 
-    @PutMapping("/jedi")
-    public ResponseEntity<Jedi> updateJedi(@RequestBody Jedi jedi) {
+    @PutMapping("/jedi/{id}")
+    public ResponseEntity<?> updateJedi(@RequestBody Jedi jedi,
+                                        @PathVariable Integer id,
+                                        @RequestHeader("If-Match") Integer ifMatch) {
 
-        boolean updatedJedi = jediService.update(jedi);
-        if (!updatedJedi) {
-            return ResponseEntity.notFound().build();
-        }
+        Optional<Jedi> existingJedi = jediService.findById(id);
 
-        return ResponseEntity.ok(jediService.findById(jedi.getId()).get());
-//        return ResponseEntity.ok().build();
-//        return ResponseEntity.noContent().build();
+        return existingJedi.map(j -> {
+            if (!(j.getVersion().equals(ifMatch))) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+
+            // update jedi
+            j.setName(jedi.getName());
+            j.setStrength(j.getStrength());
+            j.setVersion(j.getVersion() + 1);
+
+            try {
+                if (jediService.update(j)) {
+                    return ResponseEntity.ok()
+                            .location(new URI("/jedi/" + j.getId()))
+                            .eTag(Integer.toString(j.getVersion()))
+                            .body(j);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
+            } catch (URISyntaxException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }).orElse(ResponseEntity.notFound().build());
 
     }
+
 }

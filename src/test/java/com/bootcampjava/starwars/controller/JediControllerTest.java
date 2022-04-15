@@ -16,18 +16,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.is;
-import static  org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static  org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static  org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static  org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static  org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static  org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static  org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static  org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
-
 import java.util.Optional;
+
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -82,8 +76,8 @@ public class JediControllerTest {
     public void testPostJediWithSucess() throws Exception {
 
         // cenario
-        Jedi mockJedi = new Jedi(1, "HanSolo", 10, 1);
-        Mockito.doReturn(mockJedi).when(jediService).save(Mockito.any());
+        Jedi mockJedi = new Jedi(1, "Mace Windu", 400, 1);
+        Mockito.doReturn(mockJedi).when(jediService).save(any());
 
         // execucao
         mockMvc.perform(post("/jedi")
@@ -92,49 +86,89 @@ public class JediControllerTest {
 
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+
                 .andExpect(header().string(HttpHeaders.LOCATION,"/jedi".concat("/"+mockJedi.getId())))
                 .andExpect(header().string(HttpHeaders.ETAG, "\"1\""))
 
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("HanSolo")))
-                .andExpect(jsonPath("$.strength", is(10)))
+                .andExpect(jsonPath("$.name", is("Mace Windu")))
+                .andExpect(jsonPath("$.strength", is(400)))
                 .andExpect(jsonPath("$.version", is(1)));
 
     }
 
     //TODO: Teste do PUT com sucesso
     @Test
-    @DisplayName("PUT /jedi - SUCCESS")
+    @DisplayName("PUT /jedi/1 - SUCCESS")
     public void testPutJediWithSuccess() throws Exception {
 
-        // cenario
-        Jedi mockJedi = new Jedi(1, "Mace Windu", 400, 1);
-        Mockito.doReturn(true).when(jediService).update(Mockito.any());
-        Mockito.doReturn(Optional.of(mockJedi)).when(jediService).findById(Mockito.anyInt());
+        Jedi putJedi = new Jedi("Princess XXXX", 1);
+        Jedi mockJedi = new Jedi(1, "Princess Leia", 1, 1);
 
-        // execucao
-        mockMvc.perform(put("/jedi")
+        Mockito.doReturn(Optional.of(mockJedi)).when(jediService).findById(1);
+        Mockito.doReturn(true).when(jediService).update(any());
+
+        mockMvc.perform(put("/jedi/{id}", 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(mockJedi)))
-
-//                .andExpect(status().isNoContent());
-//                .andExpect(status().isOk());
+                        .header(HttpHeaders.IF_MATCH, 1)
+                        .content(asJsonString(putJedi)))
 
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//
-//                .andExpect(header().string(HttpHeaders.ETAG, "\1\""))
-//
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Mace Windu")))
-                .andExpect(jsonPath("$.strength", is(400)))
-                .andExpect(jsonPath("$.version", is(1)));
 
+                .andExpect(header().string(HttpHeaders.ETAG, "\"2\""))
+                .andExpect(header().string(HttpHeaders.LOCATION, "/jedi/1"))
+
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("Princess XXXX")))
+                .andExpect(jsonPath("$.strength", is(1)))
+                .andExpect(jsonPath("$.version", is(2)));
 
     }
 
     //TODO: Teste do PUT com uma versao igual da ja existente - deve retornar conflito
+    @Test
+    @DisplayName("PUT /jedi - Version Mismatch - CONFLICT")
+    public void testPutJediVersionMismatch() throws Exception {
+
+        // cenario
+        Jedi putJedi = new Jedi("Yoda", 500);
+        Jedi mockJedi = new Jedi(1,"Yoda", 500, 2);
+
+        // execucao
+        Mockito.doReturn(Optional.of(mockJedi)).when(jediService).findById(1);
+        Mockito.doReturn(true).when(jediService).update(any());
+
+        // assert
+        mockMvc.perform(put("/jedi/{id}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.IF_MATCH,1)
+                        .content(asJsonString(putJedi)))
+                .andExpect(status().isConflict());
+
+    }
+
     //TODO: Teste do PUT com erro - not found
+    @Test
+    @DisplayName("PUT /jedi/1 - Not Found")
+    void testJediPutNotFound() throws Exception {
+
+        // cenario
+        Jedi putJedi = new Jedi("Darth Vader", 400);
+
+        // execucao
+        Mockito.doReturn(Optional.empty()).when(jediService).findById(1);
+
+        // assert
+        mockMvc.perform(put("/jedi/{id}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.IF_MATCH, 1)
+                        .content(asJsonString(putJedi)))
+
+                .andExpect(status().isNotFound());
+    }
+
+
     //TODO: Teste do delete com sucesso
     //TODO: Teste do delete com erro - deletar um id ja deletado
     //TODO: teste do delete com erro - internal server error
