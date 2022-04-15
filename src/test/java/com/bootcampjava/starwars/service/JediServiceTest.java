@@ -77,4 +77,37 @@ public class JediServiceTest {
         Assertions.assertSame(listAllJedi.get(0), mockJedi, "Jedis must be the same");
     }
 
+    @Test
+    @DisplayName("Should return Jedi saved with success")
+    public void testSaveJediBySuccess() {
+
+        // cenario
+        Jedi mockJedi = new Jedi(1,"Jedi Name",10,1);
+        Mockito.doReturn(mockJedi).when(jediRepository).save(Mockito.any());
+
+        // execucao
+        Jedi jediSaved = jediService.save(mockJedi);
+
+        // assert
+        Assertions.assertSame(jediSaved, mockJedi, "Jedis must be the same");
+        Assertions.assertNotNull(jediSaved.getId(), "Successfully recorded jedi");
+
+    }
+
+    @Test
+    @DisplayName("Should return error when trying to save the Jedi")
+    public void testSaveJediError() {
+
+        // cenario
+        Jedi mockJedi = new Jedi(1,"Jedi Name",10,1);
+        Mockito.doReturn(null).when(jediRepository).save(mockJedi);
+
+        // execucao
+        Jedi jediNull = jediService.save(mockJedi);
+
+        // assert
+        Assertions.assertNull(jediNull, "error saving jedi");
+
+    }
+
 }
