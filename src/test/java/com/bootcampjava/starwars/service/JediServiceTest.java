@@ -78,6 +78,20 @@ public class JediServiceTest {
     }
 
     @Test
+    @DisplayName("Should return empty list of result when Jedis are not found")
+    public void testFindAllNotFound() {
+
+        // cenario
+        Mockito.doReturn(List.of()).when(jediRepository).findAll();
+
+        // execucao
+        List<Jedi> listAllJedi = jediService.findAll();
+
+        // assert
+        Assertions.assertTrue(listAllJedi.isEmpty(),"list of Jedi is empty");
+    }
+
+    @Test
     @DisplayName("Should return Jedi saved with success")
     public void testSaveJediBySuccess() {
 
@@ -89,7 +103,6 @@ public class JediServiceTest {
         Jedi jediSaved = jediService.save(mockJedi);
 
         // assert
-        Assertions.assertSame(jediSaved, mockJedi, "Jedis must be the same");
         Assertions.assertNotNull(jediSaved.getId(), "Successfully recorded jedi");
 
     }
@@ -107,7 +120,66 @@ public class JediServiceTest {
 
         // assert
         Assertions.assertNull(jediNull, "error saving jedi");
+    }
 
+    @Test
+    @DisplayName("Should return Jedi updated with success")
+    public void testUpdateJediBySuccess() {
+
+        // cenario
+        Jedi mockJedi = new Jedi(1,"Jedi Name",10,1);
+        Mockito.doReturn(mockJedi).when(jediRepository).save(Mockito.any());
+        Mockito.doReturn(true).when(jediRepository).update(mockJedi);
+
+        // execucao
+        boolean updated = jediService.update(mockJedi);
+
+        // assert
+        Assertions.assertTrue(updated, "Successfully updated jedi");
+    }
+
+    @Test
+    @DisplayName("Should not update a Jedi ")
+    public void testUpdateJediNotExecuted() {
+
+        // cenario
+        Jedi mockJedi = new Jedi(1,"Jedi Name",10,1);
+        Mockito.doReturn(null).when(jediRepository).save(Mockito.any());
+        Mockito.doReturn(false).when(jediRepository).update(mockJedi);
+
+        // execucao
+        boolean updated = jediService.update(mockJedi);
+
+        // assert
+        Assertions.assertFalse(updated, "Updated of jedi not executed");
+    }
+
+    @Test
+    @DisplayName("Should delete a Jedi with success")
+    public void testDeleteJediBySuccess() {
+
+        // cenario
+        Mockito.doReturn(true).when(jediRepository).delete(1);
+
+        // execucao
+        boolean jediDeleted = jediService.delete(1);
+
+        // assert
+        Assertions.assertTrue(jediDeleted, "Jedi not deleted");
+    }
+
+    @Test
+    @DisplayName("Shouldn't delete a Jedi when it has an error")
+    public void testDeleteJediError() {
+
+        // cenario
+        Mockito.doReturn(false).when(jediRepository).delete(1);
+
+        // execucao
+        boolean jediNotDeleted = jediService.delete(1);
+
+        // assert
+        Assertions.assertFalse(jediNotDeleted, "Jedi is not deleted");
     }
 
 }
