@@ -41,8 +41,21 @@ public class JediRepositoryTest {
         List<Jedi> listJedis = jediRepository.findAll();
 
         // assert
-        Assertions.assertFalse(listJedis.isEmpty(), "There are jedis of the list");
+        Assertions.assertTrue(listJedis.size() > 0, "Jedi list is not empty");
         Assertions.assertEquals(4, listJedis.size(), "We should have 4 jedis in our database");
+
+    }
+
+    @Test
+    @DataSet(cleanBefore = true)
+    @DisplayName("Should return an empty list of jedis")
+    public void testFindAllReturnEmpty() {
+
+        // execucao
+        List<Jedi> listJedis = jediRepository.findAll();
+
+        // assert
+        Assertions.assertFalse(listJedis.size() > 0, "There are no jedis on the list");
 
     }
 
@@ -60,10 +73,10 @@ public class JediRepositoryTest {
 
         // assert
         Assertions.assertTrue(jediDB.isPresent(), "Jedi was not found");
-        Assertions.assertEquals(jediDB.get().getVersion(), expectedJedi.getVersion(), "Jedis version must be the same");
-        Assertions.assertEquals(jediDB.get().getName(), expectedJedi.getName(), "Jedis name must be the same");
-        Assertions.assertEquals(jediDB.get().getStrength(), expectedJedi.getStrength(), "Jedis strength must be the same");
-        Assertions.assertEquals(jediDB.get().getId(), expectedJedi.getId(), "Jedis id must be the same");
+        Assertions.assertEquals(jediDB.get().getVersion(), expectedJedi.getVersion(), "Jedi version must be the same");
+        Assertions.assertEquals(jediDB.get().getName(), expectedJedi.getName(), "Jedi name must be the same");
+        Assertions.assertEquals(jediDB.get().getStrength(), expectedJedi.getStrength(), "Jedi strength must be the same");
+        Assertions.assertEquals(jediDB.get().getId(), expectedJedi.getId(), "Jedi id must be the same");
 
     }
 
@@ -92,11 +105,12 @@ public class JediRepositoryTest {
         Jedi jediSaved = jediRepository.save(jedi);
 
         // assert
-        Assertions.assertNotNull(jediSaved, "Jedis should not be null");
-        Assertions.assertEquals(jediSaved.getVersion(), jediSaved.getVersion(), "Jedis version must be the same");
-        Assertions.assertEquals(jediSaved.getName(), jediSaved.getName(), "Jedis name must be the same");
-        Assertions.assertEquals(jediSaved.getStrength(), jediSaved.getStrength(), "Jedis strength must be the same");
-        Assertions.assertEquals(jediSaved.getId(), jediSaved.getId(), "Jedis id must be the same");
+        Assertions.assertTrue(jediSaved != null && jediSaved.getId() != null, "Jedi was not saved");
+        Assertions.assertNotNull(jediSaved, "Jedi should not be null");
+        Assertions.assertEquals(jediSaved.getVersion(), jediSaved.getVersion(), "Jedi version must be the same");
+        Assertions.assertEquals(jediSaved.getName(), jediSaved.getName(), "Jedi name must be the same");
+        Assertions.assertEquals(jediSaved.getStrength(), jediSaved.getStrength(), "Jedi strength must be the same");
+        Assertions.assertEquals(jediSaved.getId(), jediSaved.getId(), "Jedi id must be the same");
     }
 
     @Test
@@ -105,23 +119,31 @@ public class JediRepositoryTest {
     public void testUpdateWithSuccess() {
 
         // cenario
+
         Integer id = 2;
-        Jedi j = null;
-        Optional<Jedi> jedi = jediRepository.findById(2);
-        if (jedi.isPresent()) {
-            j = new Jedi(jedi.get().getId(),
-                         jedi.get().getName(),
-                         jedi.get().getStrength(),
-                         jedi.get().getVersion());
-            j.setName("Jedi Name");
+        Optional<Jedi> jediBeforeUpdate = jediRepository.findById(id);
+
+        Jedi jediUpdating = null;
+        if (jediBeforeUpdate.isPresent()) {
+            jediUpdating = new Jedi(jediBeforeUpdate.get().getId(),
+                                    jediBeforeUpdate.get().getName(),
+                                    jediBeforeUpdate.get().getStrength(),
+                                    jediBeforeUpdate.get().getVersion());
+            jediUpdating.setName("Jedi Name");
         }
 
         // execucao
-        boolean jediUpdated = jediRepository.update(j);
+        boolean jediUpdated = jediRepository.update(jediUpdating);
 
         // assert
-        Assertions.assertTrue(jediUpdated, "Successfully updated jedi");
-        Assertions.assertNotEquals(jedi.get().getName(), j.getName(), "Jedis name is different");
+
+        Assertions.assertTrue(jediUpdated, "Could not update jedi");
+
+        // Assertions.assertNotEquals(jediBeforeUpdate.get().getName(), jediUpdating.getName(), "Jedis name is same");
+
+        String nameBeforeUpdate = jediBeforeUpdate.map(Jedi::getName).orElse("");
+        String nameAfterUpdate = jediRepository.findById(id).map(Jedi::getName).orElse("");
+        Assertions.assertNotEquals(nameBeforeUpdate, nameAfterUpdate, "Jedis name is same");
 
     }
 
@@ -137,7 +159,7 @@ public class JediRepositoryTest {
         boolean updateFail = jediRepository.update(jedi);
 
         // assert
-        Assertions.assertFalse(updateFail, "Jedi not updated");
+        Assertions.assertFalse(updateFail, "Jedi updated");
 
     }
 
@@ -151,9 +173,10 @@ public class JediRepositoryTest {
         boolean jediDeleted = jediRepository.delete(id);
 
         // assert
-        Assertions.assertTrue(jediDeleted, "Jedi deleted");
+        Assertions.assertTrue(jediDeleted, "Jedi not deleted");
+
         Optional<Jedi> jedi = jediRepository.findById(id);
-        Assertions.assertFalse(jedi.isPresent(), "Jedi not exists in the database");
+        Assertions.assertFalse(jedi.isPresent(), "Jedi exists in the database");
     }
 
     @Test
@@ -166,9 +189,10 @@ public class JediRepositoryTest {
         boolean jediNotDeleted = jediRepository.delete(id);
 
         // assert
-        Assertions.assertFalse(jediNotDeleted, "Jedi not deleted");
+        Assertions.assertFalse(jediNotDeleted, "Jedi deleted");
+
         Optional<Jedi> jedi = jediRepository.findById(id);
-        Assertions.assertFalse(jedi.isPresent(), "Jedi not exists in the database");
+        Assertions.assertTrue(jedi.isEmpty(), "Jedi not exists in the database");
     }
 
 }

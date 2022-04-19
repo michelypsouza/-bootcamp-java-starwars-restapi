@@ -102,13 +102,14 @@ public class JediControllerTest {
     @DisplayName("PUT /jedi/1 - SUCCESS")
     public void testPutJediWithSuccess() throws Exception {
 
-        Jedi putJedi = new Jedi("Princess XXXX", 1);
-        Jedi mockJedi = new Jedi(1, "Princess Leia", 1, 1);
+        Integer id = 1;
+        Jedi putJedi = new Jedi("Princess Leia", 1);
+        Jedi mockJedi = new Jedi(id, "Princess", 1, 1);
 
-        Mockito.doReturn(Optional.of(mockJedi)).when(jediService).findById(1);
+        Mockito.doReturn(Optional.of(mockJedi)).when(jediService).findById(id);
         Mockito.doReturn(true).when(jediService).update(any());
 
-        mockMvc.perform(put("/jedi/{id}", 1)
+        mockMvc.perform(put("/jedi/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.IF_MATCH, 1)
                         .content(asJsonString(putJedi)))
@@ -117,10 +118,10 @@ public class JediControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
                 .andExpect(header().string(HttpHeaders.ETAG, "\"2\""))
-                .andExpect(header().string(HttpHeaders.LOCATION, "/jedi/1"))
+                .andExpect(header().string(HttpHeaders.LOCATION, "/jedi".concat("/")+id))
 
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Princess XXXX")))
+                .andExpect(jsonPath("$.id", is(id)))
+                .andExpect(jsonPath("$.name", is("Princess Leia")))
                 .andExpect(jsonPath("$.strength", is(1)))
                 .andExpect(jsonPath("$.version", is(2)));
 
@@ -133,11 +134,12 @@ public class JediControllerTest {
 
         // cenario
         Jedi putJedi = new Jedi("Yoda", 500);
+        putJedi.setVersion(3);
         Jedi mockJedi = new Jedi(1,"Yoda", 500, 2);
 
         // execucao
         Mockito.doReturn(Optional.of(mockJedi)).when(jediService).findById(1);
-        Mockito.doReturn(true).when(jediService).update(any());
+        Mockito.doReturn(true).when(jediService).update(mockJedi);
 
         // assert
         mockMvc.perform(put("/jedi/{id}", 1)
@@ -182,7 +184,7 @@ public class JediControllerTest {
         Mockito.doReturn(true).when(jediService).delete(id);
 
         // assert
-        mockMvc.perform(delete("/jedi/{id}", 1)
+        mockMvc.perform(delete("/jedi/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.LOCATION, "/jedi/"+id)
                 )

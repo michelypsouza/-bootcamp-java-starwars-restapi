@@ -99,6 +99,7 @@ public class JediController {
 
         return existingJedi.map(j -> {
             if (jediService.delete(j.getId())) {
+                //return ResponseEntity.noContent().build();
                 return ResponseEntity.ok().build();
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

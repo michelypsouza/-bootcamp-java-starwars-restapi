@@ -73,7 +73,7 @@ public class JediServiceTest {
         List<Jedi> listAllJedi = jediService.findAll();
 
         // assert
-        Assertions.assertTrue(listAllJedi.size() == 1,"Jedi list size equal to one");
+        Assertions.assertEquals(listAllJedi.size(), 1,"Jedi list size different from one");
         Assertions.assertSame(listAllJedi.get(0), mockJedi, "Jedis must be the same");
     }
 
@@ -88,7 +88,7 @@ public class JediServiceTest {
         List<Jedi> listAllJedi = jediService.findAll();
 
         // assert
-        Assertions.assertTrue(listAllJedi.isEmpty(),"list of Jedi is empty");
+        Assertions.assertTrue(listAllJedi.isEmpty(),"list of Jedi is not empty");
     }
 
     @Test
@@ -103,7 +103,8 @@ public class JediServiceTest {
         Jedi jediSaved = jediService.save(mockJedi);
 
         // assert
-        Assertions.assertNotNull(jediSaved.getId(), "Successfully recorded jedi");
+        Assertions.assertTrue(jediSaved != null && jediSaved.getId() != null, "Jedi was not saved");
+        Assertions.assertNotNull(jediSaved, "Jedi should not be null");
 
     }
 
@@ -119,7 +120,7 @@ public class JediServiceTest {
         Jedi jediNull = jediService.save(mockJedi);
 
         // assert
-        Assertions.assertNull(jediNull, "error saving jedi");
+        Assertions.assertNull(jediNull, "Jedi should be null");
     }
 
     @Test
@@ -135,7 +136,7 @@ public class JediServiceTest {
         boolean updated = jediService.update(mockJedi);
 
         // assert
-        Assertions.assertTrue(updated, "Successfully updated jedi");
+        Assertions.assertTrue(updated, "Jedi was not updated");
     }
 
     @Test
@@ -151,7 +152,7 @@ public class JediServiceTest {
         boolean updated = jediService.update(mockJedi);
 
         // assert
-        Assertions.assertFalse(updated, "Updated of jedi not executed");
+        Assertions.assertFalse(updated, "Updated of jedi executed");
     }
 
     @Test
